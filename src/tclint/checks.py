@@ -85,7 +85,7 @@ class RedefinedBuiltinChecker(Visitor):
         self._violations = []
 
         plugins = [config.commands] if config.commands is not None else []
-        commands = get_commands(plugins)
+        commands = get_commands(plugins, True)
         self._commands = commands.keys()
 
         tree.accept(self, recurse=True)

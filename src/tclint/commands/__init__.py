@@ -19,9 +19,11 @@ def validate_command_plugins(plugins: List[str]) -> List[str]:
     return valid_plugins
 
 
-def get_commands(plugins: List[Union[str, pathlib.Path]]) -> Dict:
+def get_commands(plugins: List[Union[str, pathlib.Path]], builtins_only=False) -> Dict:
     commands = {}
     commands.update(_builtin.commands)
+    if not builtins_only:
+        commands.update(_builtin.gdb_testsuite_commands)
 
     for plugin in plugins:
         if isinstance(plugin, str):
