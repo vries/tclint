@@ -37,6 +37,7 @@ class LiteralBlock:
 class FormatterOpts:
     indent: str
     spaces_in_braces: bool
+    balance_spaces_in_braces: bool
     max_blank_lines: int
     indent_namespace_eval: bool
     indent_mixed_tab_size: int
@@ -57,14 +58,20 @@ class Formatter:
 
         return indented
 
-    def _brace(self, lines: list[str]) -> list[str]:
+    def _brace(self, lines: list[str], space: tuple[int, int] = (-1, -1)) -> list[str]:
         spaces_in_braces = " " if self.opts.spaces_in_braces else ""
         if lines == [""]:
             return ["{" + spaces_in_braces + "}"]
 
+        before = after = int(self.opts.spaces_in_braces)
+        if self.opts.balance_spaces_in_braces and space != (-1, -1):
+            before = min(space[0], 1)
+            after = min(space[1], 1)
+            if before + after == 1:
+                before = after = int(self.opts.spaces_in_braces)
         braced_lines = lines[:]
-        braced_lines[0] = "{" + spaces_in_braces + lines[0]
-        braced_lines[-1] += spaces_in_braces + "}"
+        braced_lines[0] = "{" + (before * " ") + lines[0]
+        braced_lines[-1] += (after * " ") + "}"
         return braced_lines
 
     def format(self, *nodes: Node | LiteralBlock) -> list[str]:
@@ -402,7 +409,9 @@ class Formatter:
             last_line = child.end_pos[0]
 
         if list_node.pos[0] == list_node.end_pos[0]:
-            return self._brace(contents)
+            space_before = list_node.children[0].pos[1] - list_node.pos[1] - 1
+            space_after = list_node.end_pos[1] - list_node.children[-1].end_pos[1] - 1
+            return self._brace(contents, (space_before, space_after))
 
         return ["{"] + self._indent(contents, self.opts.indent) + ["}"]
 
@@ -432,7 +441,9 @@ class Formatter:
             formatted.extend(lines[1:])
 
         if expr.pos[0] == expr.end_pos[0]:
-            return self._brace(formatted)
+            space_before = expr.children[0].pos[1] - expr.pos[1] - 1
+            space_after = expr.end_pos[1] - expr.children[-1].end_pos[1] - 1
+            return self._brace(formatted, (space_before, space_after))
 
         return ["{"] + self._indent(formatted, self.opts.indent) + ["}"]
 

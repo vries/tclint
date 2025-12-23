@@ -43,6 +43,7 @@ class Config:
     style_max_blank_lines: int = dataclasses.field(default=2)
     style_indent_namespace_eval: bool = dataclasses.field(default=True)
     style_spaces_in_braces: bool = dataclasses.field(default=False)
+    style_balance_spaces_in_braces: bool = dataclasses.field(default=False)
 
     def apply_cli_args(self, args):
         args_dict = vars(args)
@@ -222,6 +223,7 @@ _validate_style_max_blank_lines = And(
 )
 _validate_style_indent_namespace_eval = bool
 _validate_style_spaces_in_braces = bool
+_validate_style_balance_spaces_in_braces = bool
 
 
 def _error_if_dynamic_plugin(p: pathlib.Path):
@@ -253,6 +255,9 @@ def _validate_config(config: dict, root: pathlib.Path):
             Optional("max-blank-lines"): _validate_style_max_blank_lines,
             Optional("indent-namespace-eval"): _validate_style_indent_namespace_eval,
             Optional("spaces-in-braces"): _validate_style_spaces_in_braces,
+            Optional(
+                "balance-spaces-in-braces"
+            ): _validate_style_balance_spaces_in_braces,
         },
     })
 
@@ -386,6 +391,13 @@ def setup_tclfmt_config_cli_args(parser, cwd: pathlib.Path):
         "style_spaces_in_braces",
         "--spaces-in-braces",
         "--no-spaces-in-braces",
+    )
+    _add_bool(
+        config_group,
+        parser,
+        "style_balance_spaces_in_braces",
+        "--balance-spaces-in-braces",
+        "--no-balance-spaces-in-braces",
     )
 
 
